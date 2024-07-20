@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+  namenode:
+    image: apache/hadoop:3.3.0
+    container_name: namenode
+    environment:
+      - CLUSTER_NAME=test-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    command: >
+      /bin/bash -c "
+      hdfs namenode -format &&
+      hdfs --daemon start namenode &&
+      while true; do sleep 1000; done"
+    networks:
+      - hadoop
+
+  datanode:
+    image: apache/hadoop:3.3.0
+    container_name: datanode
+    environment:
+      - CLUSTER_NAME=test-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    command: >
+      /bin/bash -c "
+      hdfs --daemon start datanode &&
+      while true; do sleep 1000; done"
+    networks:
+      - hadoop
+
+  resourcemanager:
+    image: apache/hadoop:3.3.0
+    container_name: resourcemanager
+    environment:
+      - CLUSTER_NAME=test-cluster
+    ports:
+      - "8088:8088"
+    command: >
+      /bin/bash -c "
+      yarn --daemon start resourcemanager &&
+      while true; do sleep 1000; done"
+    networks:
+      - hadoop
+
+  nodemanager:
+    image: apache/hadoop:3.3.0
+    container_name: nodemanager
+    environment:
+      - CLUSTER_NAME=test-cluster
+    command: >
+      /bin/bash -c "
+      yarn --daemon start nodemanager &&
+      while true; do sleep 1000; done"
+    networks:
+      - hadoop
+
+  spark-master:
+    image: bitnami/spark:3.1.2
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    networks:
+      - hadoop
+
+  spark-worker:
+    image: bitnami/spark:3.1.2
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop
+
+  zookeeper:
+    image: bitnami/zookeeper:3.7.0
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - hadoop
+
+  kafka:
+    image: bitnami/kafka:2.8.0
+    container_name: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - hadoop
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.0
+    container_name: kafka-ui
+    ports:
+      - "8085:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - hadoop
+
+  neo4j-core-1:
+    image: neo4j:4.2.1
+    container_name: neo4j-core-1
+    environment:
+      - NEO4J_AUTH=neo4j/test
+      - NEO4J_dbms_mode=CORE
+      - NEO4J_dbms_connector_bolt_advertised__address=neo4j-core-1:7687
+      - NEO4J_dbms_connector_http_advertised__address=neo4j-core-1:7474
+      - NEO4J_dbms_default__advertised__address=neo4j-core-1
+      - NEO4J_causal__clustering_discovery__advertised__address=neo4j-core-1:5000
+      - NEO4J_causal__clustering_transaction__advertised__address=neo4j-core-1:6000
+      - NEO4J_causal__clustering_raft__advertised__address=neo4j-core-1:7000
+      - NEO4J_dbms_default__database=neo4j
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_core_1_data:/data
+    networks:
+      - hadoop
+
+  neo4j-core-2:
+    image: neo4j:4.2.1
+    container_name: neo4j-core-2
+    environment:
+      - NEO4J_AUTH=neo4j/test
+      - NEO4J_dbms_mode=CORE
+      - NEO4J_dbms_connector_bolt_advertised__address=neo4j-core-2:7687
+      - NEO4J_dbms_connector_http_advertised__address=neo4j-core-2:7474
+      - NEO4J_dbms_default__advertised__address=neo4j-core-2
+      - NEO4J_causal__clustering_discovery__advertised__address=neo4j-core-2:5000
+      - NEO4J_causal__clustering_transaction__advertised__address=neo4j-core-2:6000
+      - NEO4J_causal__clustering_raft__advertised__address=neo4j-core-2:7000
+      - NEO4J_dbms_default__database=neo4j
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    volumes:
+      - neo4j_core_2_data:/data
+    networks:
+      - hadoop
+
+  neo4j-core-3:
+    image: neo4j:4.2.1
+    container_name: neo4j-core-3
+    environment:
+      - NEO4J_AUTH=neo4j/test
+      - NEO4J_dbms_mode=CORE
+      - NEO4J_dbms_connector_bolt_advertised__address=neo4j-core-3:7687
+      - NEO4J_dbms_connector_http_advertised__address=neo4j-core-3:7474
+      - NEO4J_dbms_default__advertised__address=neo4j-core-3
+      - NEO4J_causal__clustering_discovery__advertised__address=neo4j-core-3:5000
+      - NEO4J_causal__clustering_transaction__advertised__address=neo4j-core-3:6000
+      - NEO4J_causal__clustering_raft__advertised__address=neo4j-core-3:7000
+      - NEO4J_dbms_default__database=neo4j
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    volumes:
+      - neo4j_core_3_data:/data
+    networks:
+      - hadoop
+
+  neo4j-replica-1:
+    image: neo4j:4.2.1
+    container_name: neo4j-replica-1
+    environment:
+      - NEO4J_AUTH=neo4j/test
+      - NEO4J_dbms_mode=READ_REPLICA
+      - NEO4J_dbms_connector_bolt_advertised__address=neo4j-replica-1:7687
+      - NEO4J_dbms_connector_http_advertised__address=neo4j-replica-1:7474
+      - NEO4J_dbms_default__advertised__address=neo4j-replica-1
+      - NEO4J_causal__clustering_discovery__advertised__address=neo4j-replica-1:5000
+      - NEO4J_causal__clustering_transaction__advertised__address=neo4j-replica-1:6000
+      - NEO4J_causal__clustering_raft__advertised__address=neo4j-replica-1:7000
+      - NEO4J_dbms_default__database=neo4j
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    volumes:
+      - neo4j_replica_1_data:/data
+    networks:
+      - hadoop
+
+  springboot-app:
+    image: your-springboot-app-image
+    container_name: springboot-app
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATA_NEO4J_URI=bolt://neo4j-core-1:7687
+      - SPRING_DATA_NEO4J_USERNAME=neo4j
+      - SPRING_DATA_NEO4J_PASSWORD=test
+    depends_on:
+      - kafka
+      - neo4j-core-1
+    networks:
+      - hadoop
+
+volumes:
+  namenode_data:
+  datanode_data:
+  neo4j_core_1_data:
+  neo4j_core_2_data:
+  neo4j_core_3_data:
+  neo4j_replica_1_data:
+
+networks:
+  hadoop:
+    driver: bridge
+
+# docker-compose up --scale datanode=3 --scale nodemanager=3 --scale spark-worker=3 --scale kafka=3 --scale neo4j-replica-1=3 --scale springboot-app=3
