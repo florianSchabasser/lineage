@@ -13,13 +13,19 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LineageNodeEntity {
+public class LineageFlowEntity {
 
     @Id
     private String id;
+    private String nodeId;
+    private String hashIn;
+    private String hashOut;
+    @Relationship(type = "flow", direction = Relationship.Direction.OUTGOING)
+    private LineageFlowEntity successor;
+    private String value;
+    private Integer rowNum;
+
     private String name;
     private String description;
-    @Relationship(type = "sendsTo", direction = Relationship.Direction.OUTGOING)
-    private LineageNodeEntity successor;
-
+    private String fileName;
 }

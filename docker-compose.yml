@@ -1,123 +1,60 @@
-version: '3.8'
-
-services:
-  namenode:
-    image: apache/hadoop:3.3.0
-    container_name: namenode
-    environment:
-      - CLUSTER_NAME=test-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-    ports:
-      - "9870:9870"
-      - "9000:9000"
-    volumes:
-      - namenode_data:/hadoop/dfs/name
-    command: >
-      /bin/bash -c "
-      hdfs namenode -format &&
-      hdfs --daemon start namenode &&
-      while true; do sleep 1000; done"
-    networks:
-      - hadoop
-
-  datanode:
-    image: apache/hadoop:3.3.0
-    container_name: datanode
-    environment:
-      - CLUSTER_NAME=test-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-    volumes:
-      - datanode_data:/hadoop/dfs/data
-    command: >
-      /bin/bash -c "
-      hdfs --daemon start datanode &&
-      while true; do sleep 1000; done"
-    networks:
-      - hadoop
-
-  resourcemanager:
-    image: apache/hadoop:3.3.0
-    container_name: resourcemanager
-    environment:
-      - CLUSTER_NAME=test-cluster
-    ports:
-      - "8088:8088"
-    command: >
-      /bin/bash -c "
-      yarn --daemon start resourcemanager &&
-      while true; do sleep 1000; done"
-    networks:
-      - hadoop
-
-  nodemanager:
-    image: apache/hadoop:3.3.0
-    container_name: nodemanager
-    environment:
-      - CLUSTER_NAME=test-cluster
-    command: >
-      /bin/bash -c "
-      yarn --daemon start nodemanager &&
-      while true; do sleep 1000; done"
-    networks:
-      - hadoop
-
-  zookeeper:
-    image: bitnami/zookeeper:3.7.0
-    container_name: zookeeper
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    ports:
-      - "2181:2181"
-    networks:
-      - hadoop
-
-  kafka:
-    image: bitnami/kafka:2.8.0
-    container_name: kafka
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
-    networks:
-      - hadoop
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:v0.7.0
-    container_name: kafka-ui
-    ports:
-      - "8085:8080"
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
-    depends_on:
-      - kafka
-    networks:
-      - hadoop
-
-  neo4j:
-    image: neo4j:4.2.1
-    container_name: neo4j
-    environment:
-      - NEO4J_AUTH=neo4j/test
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - neo4j_data:/data
-    networks:
-      - hadoop
+version: "2"
 
 volumes:
-  namenode_data:
-  datanode_data:
-  neo4j_data:
+  kafka_data:
+    driver: local
 
 networks:
-  hadoop:
+  default_net:
     driver: bridge
+
+services:
+    kafka:
+      image: docker.io/bitnami/kafka:3.4.0-debian-11-r23
+      networks:
+        - default_net
+      ports:
+        - "9094:9094"
+      volumes:
+        - "kafka_data:/bitnami"
+      environment:
+        - ALLOW_PLAINTEXT_LISTENER=yes
+        - KAFKA_KRAFT_CLUSTER_ID=9YoavaRpTCOitT3Dm2OQFQ
+        - KAFKA_CFG_LISTENERS=CLIENT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+        - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9094
+        - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+        - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+
+    kafka-ui:
+      image: provectuslabs/kafka-ui:v0.7.0
+      networks:
+        - default_net
+      ports:
+        - "9000:8080"
+      depends_on:
+        kafka:
+          condition: service_started
+      environment:
+        KAFKA_CLUSTERS_0_NAME: lineage
+        KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+        DYNAMIC_CONFIG_ENABLED: 'true'
+
+    neo4j:
+      container_name: neo4j
+      image: neo4j:latest
+      networks:
+        - default_net
+      ports:
+        - 7474:7474
+        - 7687:7687
+      environment:
+        - NEO4J_AUTH=neo4j/password
+        - NEO4J_apoc_export_file_enabled=true
+        - NEO4J_apoc_import_file_enabled=true
+        - NEO4J_apoc_import_file_use__neo4j__config=true
+        - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+      volumes:
+        - ./neo4j_db/data:/data
+        - ./neo4j_db/logs:/logs
+        - ./neo4j_db/import:/var/lib/neo4j/import
+        - ./neo4j_db/plugins:/plugins

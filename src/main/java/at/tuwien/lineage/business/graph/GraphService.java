@@ -1,15 +1,14 @@
 package at.tuwien.lineage.business.graph;
 
-import at.tuwien.lineage.dto.graph.Operation;
+import at.tuwien.lineage.dto.graph.LineageNodeLink;
+import at.tuwien.lineage.dto.graph.LineageNodeRegistration;
 import at.tuwien.lineage.persistence.GraphRepository;
-import at.tuwien.lineage.persistence.entities.OperationEntity;
+import at.tuwien.lineage.persistence.entities.LineageNodeEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,18 +16,22 @@ public class GraphService {
 
     private final GraphRepository graphRepository;
 
-    public void persistAsGraph(List<Operation> operations) {
-        Operation root = operations.stream().filter(Operation::isRoot).findFirst() //
-                .orElseThrow(() -> new IllegalStateException("Multiple root nodes"));
+    public void persist(LineageNodeRegistration node) {
 
-        OperationEntity rootEntity = createGraph(root, operations.stream() //
-                .collect(Collectors.toMap(Operation::id, Function.identity())));
-        graphRepository.save(rootEntity);
+        LineageNodeEntity toSave = new LineageNodeEntity(node.nodeId(), node.name(), node.description(), null);
+        graphRepository.save(toSave);
     }
 
-    private OperationEntity createGraph(Operation operation, Map<String, Operation> operations) {
-        return new OperationEntity(operation.id(), operation.name(), operation.description(), operation.references() //
-                .stream().map(r -> createGraph(operations.get(r), operations)).toList(), operation.source());
+    public void persist(LineageNodeLink node) {
+        LineageNodeEntity srcEntity = graphRepository.findById(node.srcNodeId()).orElseThrow();
+        LineageNodeEntity destEntity = graphRepository.findById(node.destNodeId()).orElseThrow();
+
+        srcEntity.setSuccessor(destEntity);
+        graphRepository.saveAll(List.of(srcEntity, destEntity));
     }
 
+    @Cacheable("LineageNodeEntityCache")
+    public LineageNodeEntity getLineageNodeCached(String id) {
+        return graphRepository.findById(id).orElseThrow();
+    }
 }

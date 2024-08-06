@@ -48,8 +48,17 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public NewTopic lineageGraphTopic() {
-        return TopicBuilder.name("lineage-graph")
+    public NewTopic lineageNodeRegistrationTopic() {
+        return TopicBuilder.name("lineage-node-registration")
+                .partitions(1)
+                .replicas(1)
+                .config(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT)
+                .build();
+    }
+
+    @Bean
+    public NewTopic lineageNodeLinkTopic() {
+        return TopicBuilder.name("lineage-node-link")
                 .partitions(1)
                 .replicas(1)
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT)
