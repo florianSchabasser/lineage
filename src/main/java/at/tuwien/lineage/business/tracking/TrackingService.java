@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static java.util.UUID.randomUUID;
 
@@ -19,30 +17,25 @@ import static java.util.UUID.randomUUID;
 @RequiredArgsConstructor
 public class TrackingService {
 
-    private final Pattern UUID_REGEX = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     private final TrackingRepository trackingRepository;
     private final GraphService graphService;
 
     public void persist(LineageFlow lineageFlow) {
-        LineageFlowEntity current = createLineageFlowEntity(lineageFlow);
-        List<LineageFlowEntity> predecessor = UUID_REGEX.matcher(lineageFlow.hashIn()).matches() ?
-                trackingRepository.findAllByHashOut(lineageFlow.hashIn()) : List.of();
-        Optional<LineageFlowEntity> successor = UUID_REGEX.matcher(lineageFlow.hashOut()).matches() ?
-                trackingRepository.findByHashIn(lineageFlow.hashOut()) : Optional.empty();
+        LineageNodeEntity lineageNodeEntity = graphService.getLineageNodeCached(lineageFlow.nodeId());
+        LineageFlowEntity current = createLineageFlowEntity(lineageNodeEntity, lineageFlow);
+        List<LineageFlowEntity> predecessor = new ArrayList<>();
 
-        successor.ifPresent(current::setSuccessor);
-        predecessor.forEach(p -> p.setSuccessor(current));
+        if (!lineageNodeEntity.isFirstElement()) {
+            predecessor.addAll(trackingRepository.findAllByHashOut(lineageFlow.hashIn()));
+            predecessor.forEach(p -> p.getSuccessor().add(current));
+        }
 
         List<LineageFlowEntity> toSave = new ArrayList<>(predecessor);
-        successor.ifPresent(toSave::add);
         toSave.add(current);
-
         trackingRepository.saveAll(toSave);
     }
 
-    private LineageFlowEntity createLineageFlowEntity(LineageFlow lineageFlow) {
-        LineageNodeEntity lineageNodeEntity = graphService.getLineageNodeCached(lineageFlow.nodeId());
+    private LineageFlowEntity createLineageFlowEntity(LineageNodeEntity lineageNodeEntity, LineageFlow lineageFlow) {
 
         LineageFlowEntity lineageFlowEntity = new LineageFlowEntity();
         lineageFlowEntity.setNodeId(lineageFlow.nodeId());

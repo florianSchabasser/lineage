@@ -6,7 +6,6 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TrackingRepository extends Neo4jRepository<LineageFlowEntity, String> {
@@ -14,6 +13,6 @@ public interface TrackingRepository extends Neo4jRepository<LineageFlowEntity, S
     List<LineageFlowEntity> findAllByHashOut(String hash);
 
     @Query("MATCH (n:LineageNodeEntity) WHERE n.hashIn = $hash RETURN n")
-    Optional<LineageFlowEntity> findByHashIn(String hash);
+    List<LineageFlowEntity> findAllByHashIn(String hash);
 
 }

@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class GraphService {
@@ -27,7 +25,7 @@ public class GraphService {
         LineageNodeEntity destEntity = graphRepository.findById(node.destNodeId()).orElseThrow();
 
         srcEntity.setSuccessor(destEntity);
-        graphRepository.saveAll(List.of(srcEntity, destEntity));
+        graphRepository.save(srcEntity);
     }
 
     @Cacheable("LineageNodeEntityCache")
