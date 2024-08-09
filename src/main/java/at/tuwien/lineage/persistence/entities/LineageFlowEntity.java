@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -18,15 +19,23 @@ import java.util.Set;
 @NoArgsConstructor
 public class LineageFlowEntity {
 
+    // Prevent race conditions between stages with optimistic locking
+    // Emit messages with task unique id as key
+    @Version
+    private Long version;
+
+    // applicationId#flowId#flowId
+    // guaranties fault tolerance - duplicate flows will be overridden
     @Id
-    private String id;
+    private String flowId;
     private String nodeId;
+    private String applicationId;
+
     private String hashIn;
     private String hashOut;
     @Relationship(type = "flow", direction = Relationship.Direction.OUTGOING)
     private Set<LineageFlowEntity> successor;
     private String value;
-    private Integer rowNum;
 
     private String name;
     private String description;
@@ -37,11 +46,11 @@ public class LineageFlowEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LineageFlowEntity that = (LineageFlowEntity) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(flowId, that.flowId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hashCode(flowId);
     }
 }

@@ -1,3 +1,3 @@
 package at.tuwien.lineage.dto.tracking;
 
-public record LineageFlow(String nodeId, String hashIn, String hashOut, String value) {}
+public record LineageFlow(String flowId, String hashIn, String hashOut, String value) {}

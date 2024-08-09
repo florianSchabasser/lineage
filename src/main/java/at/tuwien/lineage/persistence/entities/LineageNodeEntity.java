@@ -36,8 +36,4 @@ public class LineageNodeEntity {
     public int hashCode() {
         return Objects.hashCode(id);
     }
-
-    public boolean isFirstElement() {
-        return id.endsWith("#0");
-    }
 }
