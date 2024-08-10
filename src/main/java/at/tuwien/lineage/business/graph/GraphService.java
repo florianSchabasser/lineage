@@ -5,7 +5,6 @@ import at.tuwien.lineage.dto.graph.LineageNodeRegistration;
 import at.tuwien.lineage.persistence.GraphRepository;
 import at.tuwien.lineage.persistence.entities.LineageNodeEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +14,6 @@ public class GraphService {
     private final GraphRepository graphRepository;
 
     public void persist(LineageNodeRegistration node) {
-
         LineageNodeEntity toSave = new LineageNodeEntity(node.nodeId(), node.name(), node.description(), null);
         graphRepository.save(toSave);
     }
@@ -26,10 +24,5 @@ public class GraphService {
 
         srcEntity.setSuccessor(destEntity);
         graphRepository.save(srcEntity);
-    }
-
-    @Cacheable("LineageNodeEntityCache")
-    public LineageNodeEntity getLineageNodeCached(String id) {
-        return graphRepository.findById(id).orElseThrow();
     }
 }

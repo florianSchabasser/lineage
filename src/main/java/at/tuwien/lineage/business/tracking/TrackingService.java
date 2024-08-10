@@ -1,10 +1,8 @@
 package at.tuwien.lineage.business.tracking;
 
-import at.tuwien.lineage.business.graph.GraphService;
 import at.tuwien.lineage.dto.tracking.LineageFlow;
 import at.tuwien.lineage.persistence.TrackingRepository;
 import at.tuwien.lineage.persistence.entities.LineageFlowEntity;
-import at.tuwien.lineage.persistence.entities.LineageNodeEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +17,6 @@ import static java.lang.String.format;
 public class TrackingService {
 
     private final TrackingRepository trackingRepository;
-    private final GraphService graphService;
 
     public void persist(LineageFlow lineageFlow) {
         LineageFlowEntity current = createLineageFlowEntity(lineageFlow);
@@ -40,7 +37,6 @@ public class TrackingService {
         String[] ids = lineageFlow.flowId().split("#");
         String nodeId = format("%s#%s", ids[0], ids[1]);
         String applicationId = ids[0];
-        LineageNodeEntity lineageNodeEntity = graphService.getLineageNodeCached(nodeId);
 
         LineageFlowEntity lineageFlowEntity = new LineageFlowEntity();
         lineageFlowEntity.setApplicationId(applicationId);
@@ -49,9 +45,6 @@ public class TrackingService {
         lineageFlowEntity.setHashIn(lineageFlow.hashIn());
         lineageFlowEntity.setHashOut(lineageFlow.hashOut());
         lineageFlowEntity.setValue(lineageFlow.value());
-
-        lineageFlowEntity.setName(lineageNodeEntity.getName());
-        lineageFlowEntity.setDescription(lineageNodeEntity.getDescription());
 
         return lineageFlowEntity;
     }
