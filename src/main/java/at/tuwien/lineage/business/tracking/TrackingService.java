@@ -4,6 +4,7 @@ import at.tuwien.lineage.dto.tracking.LineageFlow;
 import at.tuwien.lineage.persistence.TrackingRepository;
 import at.tuwien.lineage.persistence.entities.LineageFlowEntity;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrackingService {
@@ -31,6 +33,7 @@ public class TrackingService {
         toSave.addAll(predecessor);
         toSave.add(current);
         trackingRepository.saveAll(toSave);
+        log.info("Persisted lineage flow (flowId: {})", lineageFlow.flowId());
     }
 
     private LineageFlowEntity createLineageFlowEntity(LineageFlow lineageFlow) {
@@ -42,6 +45,8 @@ public class TrackingService {
         lineageFlowEntity.setApplicationId(applicationId);
         lineageFlowEntity.setNodeId(nodeId);
         lineageFlowEntity.setFlowId(lineageFlow.flowId());
+        lineageFlowEntity.setName(lineageFlow.name());
+        lineageFlowEntity.setDescription(lineageFlow.description());
         lineageFlowEntity.setHashIn(lineageFlow.hashIn());
         lineageFlowEntity.setHashOut(lineageFlow.hashOut());
         lineageFlowEntity.setValue(lineageFlow.value());

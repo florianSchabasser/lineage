@@ -63,8 +63,8 @@ public class KafkaConsumerConfig {
     @Bean
     public NewTopic lineageNodeTopic() {
         return TopicBuilder.name("lineage-node")
-                .partitions(5)
-                .replicas(2)
+                .partitions(3)
+                .replicas(1)
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE)
                 .build();
     }
@@ -72,8 +72,8 @@ public class KafkaConsumerConfig {
     @Bean
     public NewTopic lineageFlowTopic() {
         return TopicBuilder.name("lineage-flow")
-                .partitions(5)
-                .replicas(2)
+                .partitions(3)
+                .replicas(1)
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE)
                 .build();
     }
