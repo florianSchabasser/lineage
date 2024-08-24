@@ -5,7 +5,9 @@ ARG APP_NAME=lineage
 ARG VERSION=1.0.2
 
 ARG JAR_FILE=target/${APP_NAME}-${VERSION}.jar
-ADD ${JAR_FILE} ${APP_NAME}-${VERSION}.jar
+COPY ${JAR_FILE} app.jar
+
+RUN chmod +x app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java","-Dspring.profiles.active=docker", "-jar", "/${APP_NAME}-${VERSION}.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
