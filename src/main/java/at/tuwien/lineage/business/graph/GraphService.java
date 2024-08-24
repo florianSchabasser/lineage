@@ -17,7 +17,7 @@ public class GraphService {
 
     public void persist(LineageNodeRegistration node) {
         LineageNodeEntity toSave = new LineageNodeEntity();
-        toSave.setId(node.nodeId());
+        toSave.setNodeId(node.nodeId());
         toSave.setName(node.name());
         toSave.setDescription(node.description());
 

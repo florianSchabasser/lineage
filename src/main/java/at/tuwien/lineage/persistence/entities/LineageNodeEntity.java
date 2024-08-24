@@ -18,7 +18,7 @@ import java.util.Objects;
 public class LineageNodeEntity {
 
     @Id
-    private String id;
+    private String nodeId;
     private String name;
     private String description;
     @Relationship(type = "sendsTo", direction = Relationship.Direction.OUTGOING)
@@ -29,11 +29,11 @@ public class LineageNodeEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LineageNodeEntity that = (LineageNodeEntity) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(nodeId, that.nodeId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hashCode(nodeId);
     }
 }
