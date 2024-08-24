@@ -25,11 +25,11 @@ public class KafkaConsumerService {
     private final TrackingService trackingService;
     private final ObjectMapper objectMapper;
 
-    // Assuming sequential processing! Concurrency must be 1.
-    @KafkaListener(topics = "lineage-node", groupId = "lineage-backend", concurrency = "3")
+    @KafkaListener(topics = "lineage-node", groupId = "lineage-backend", concurrency = "1")
     public void listenLineageNodeLink(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) throws JsonProcessingException {
         try {
             String entityType = new String(record.headers().lastHeader("type").value());
+            log.info("Received new {}", entityType);
 
             switch (entityType) {
                 case "LineageNodeLink":
@@ -51,10 +51,10 @@ public class KafkaConsumerService {
         }
     }
 
-    // Higher concurrency -> Higher risk of race conditions in case of a retry
-    @KafkaListener(topics = "lineage-flow", groupId = "lineage-backend", concurrency = "3")
+    @KafkaListener(topics = "lineage-flow", groupId = "lineage-backend", concurrency = "10")
     public void listenLineageFlow(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) throws JsonProcessingException {
         try {
+            log.info("Received new lineage flow");
             LineageFlow lineageFlow = objectMapper.readValue(record.value(), LineageFlow.class);
             trackingService.persist(lineageFlow);
             acknowledgment.acknowledge();

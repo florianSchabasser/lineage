@@ -26,11 +26,7 @@ public class GraphService {
     }
 
     public void persist(LineageNodeLink node) {
-        LineageNodeEntity srcEntity = graphRepository.findById(node.srcNodeId()).orElseThrow();
-        LineageNodeEntity destEntity = graphRepository.findById(node.destNodeId()).orElseThrow();
-
-        srcEntity.setSuccessor(destEntity);
-        graphRepository.save(srcEntity);
-        log.info("Established node link (srcNodeId: {}, destNodeId: {})", srcEntity.getId(), destEntity.getId());
+        graphRepository.createRelationship(node.srcNodeId(), node.destNodeId());
+        log.info("Established node link (srcNodeId: {}, destNodeId: {})", node.srcNodeId(), node.destNodeId());
     }
 }
