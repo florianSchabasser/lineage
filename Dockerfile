@@ -8,4 +8,4 @@ ARG JAR_FILE=target/${APP_NAME}-${VERSION}.jar
 ADD ${JAR_FILE} ${APP_NAME}-${VERSION}.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java","-jar", "/${APP_NAME}-${VERSION}.jar"]
+ENTRYPOINT ["java","-Dspring.profiles.active=docker", "-jar", "/${APP_NAME}-${VERSION}.jar"]
