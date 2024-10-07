@@ -19,6 +19,8 @@ public class LineageNodeEntity {
 
     @Id
     private String nodeId;
+    private String applicationId;
+
     private String name;
     private String description;
     @Relationship(type = "sendsTo", direction = Relationship.Direction.OUTGOING)

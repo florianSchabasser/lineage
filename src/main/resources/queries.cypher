@@ -25,6 +25,6 @@ RETURN path
 
 // Backward tracing for a specific row
 MATCH (end:LineageFlowEntity)
-WHERE end.applicationId = 'local-1724487096906' AND end.hashOut = 'write#0#1'
+WHERE end.applicationId = 'app-20240825160411-0001' AND end.hashOut = 'write#0#1'
 MATCH path = (end)-[*0..]-(flow)
 RETURN path

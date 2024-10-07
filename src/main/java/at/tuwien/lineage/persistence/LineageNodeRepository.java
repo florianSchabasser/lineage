@@ -6,7 +6,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface GraphRepository extends Neo4jRepository<LineageNodeEntity, String> {
+public interface LineageNodeRepository extends Neo4jRepository<LineageNodeEntity, String> {
 
     @Query("MATCH (src:LineageNodeEntity { nodeId: $srcNodeId }) " +
             "MATCH (dest:LineageNodeEntity { nodeId: $destNodeId }) " +

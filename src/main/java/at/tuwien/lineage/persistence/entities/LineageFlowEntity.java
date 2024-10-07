@@ -21,18 +21,16 @@ public class LineageFlowEntity {
     // Guaranties fault tolerance - duplicate flows will be overridden
     @Id
     private String flowId; //        = applicationId#rddId#recordId
-    private String nodeId; //        = applicationId#rddId
     private String applicationId; // = applicationId
 
     private String hashIn;
     private String hashOut;
     @Relationship(type = "flow", direction = Relationship.Direction.OUTGOING)
     private Set<LineageFlowEntity> successor;
-    private String value;
 
+    private String value;
     private String name;
     private String description;
-    private String fileName;
 
     @Override
     public boolean equals(Object o) {

@@ -1,7 +1,7 @@
 package at.tuwien.lineage.business;
 
-import at.tuwien.lineage.business.graph.GraphService;
-import at.tuwien.lineage.business.tracking.TrackingService;
+import at.tuwien.lineage.business.graph.LineageNodeService;
+import at.tuwien.lineage.business.tracking.LineageFlowService;
 import at.tuwien.lineage.dto.graph.LineageNodeLink;
 import at.tuwien.lineage.dto.graph.LineageNodeRegistration;
 import at.tuwien.lineage.dto.tracking.LineageFlow;
@@ -21,8 +21,8 @@ import static java.lang.String.format;
 @RequiredArgsConstructor
 public class KafkaConsumerService {
 
-    private final GraphService graphService;
-    private final TrackingService trackingService;
+    private final LineageNodeService lineageNodeService;
+    private final LineageFlowService lineageFlowService;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "lineage-node", groupId = "lineage-backend", concurrency = "1")
@@ -34,11 +34,11 @@ public class KafkaConsumerService {
             switch (entityType) {
                 case "LineageNodeLink":
                     LineageNodeLink nodeLink = objectMapper.readValue(record.value(), LineageNodeLink.class);
-                    graphService.persist(nodeLink);
+                    lineageNodeService.persist(nodeLink);
                     break;
                 case "LineageNodeRegistration":
                     LineageNodeRegistration nodeRegistration = objectMapper.readValue(record.value(), LineageNodeRegistration.class);
-                    graphService.persist(nodeRegistration);
+                    lineageNodeService.persist(nodeRegistration);
                     break;
                 default:
                     throw new IllegalArgumentException(format("Unsupported data type %s", entityType));
@@ -52,15 +52,20 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(topics = "lineage-flow", groupId = "lineage-backend", concurrency = "10")
-    public void listenLineageFlow(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) throws JsonProcessingException {
-        try {
-            log.info("Received new lineage flow");
-            LineageFlow lineageFlow = objectMapper.readValue(record.value(), LineageFlow.class);
-            trackingService.persist(lineageFlow);
-            acknowledgment.acknowledge();
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw e;
+    public void listenLineageFlow(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+        LineageFlow lineageFlow;
+        String[] values = record.value().split(",");
+
+        if (values.length == 3) {
+            lineageFlow = new LineageFlow(values[0], values[1], values[2]);
+        } else if (values.length == 6) {
+            lineageFlow = new LineageFlow(values[0], values[1], values[2], values[3], values[4], values[5]);
+        } else {
+            log.error("Unsupported message type {}", record.value());
+            return;
         }
+
+        lineageFlowService.persist(lineageFlow);
+        acknowledgment.acknowledge();
     }
 }
