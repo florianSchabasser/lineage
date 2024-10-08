@@ -14,10 +14,10 @@ public interface LineageFlowRepository extends Neo4jRepository<LineageFlowEntity
             "ON MATCH SET current.applicationId = $applicationId, current.hashIn = $hashIn, current.hashOut = $hashOut, " +
             "current.value = $value, current.name = $name, current.description = $description " +
             "WITH current " +
-            "OPTIONAL MATCH (pred:LineageFlowEntity { applicationId: $applicationId, hashOut: $hashIn }) " +
+            "MATCH (pred:LineageFlowEntity { applicationId: $applicationId, hashOut: $hashIn }) " +
             "MERGE (pred)-[:flow]->(current) " +
             "WITH current " +
-            "OPTIONAL MATCH (succ:LineageFlowEntity { applicationId: $applicationId, hashIn: $hashOut }) " +
+            "MATCH (succ:LineageFlowEntity { applicationId: $applicationId, hashIn: $hashOut }) " +
             "MERGE (current)-[:flow]->(succ)")
     void createAndLinkEntities(String flowId, String applicationId, String hashIn, String hashOut, String value,
                                String name, String description);
