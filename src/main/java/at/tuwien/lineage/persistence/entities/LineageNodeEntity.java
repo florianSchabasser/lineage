@@ -10,7 +10,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.Objects;
 
-@Node
+@Node("LineageNode")
 @Getter
 @Setter
 @AllArgsConstructor

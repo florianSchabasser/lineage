@@ -5,12 +5,16 @@ MATCH (n) DETACH DELETE n
 // https://neo4j.com/docs/operations-manual/current/clustering/introduction/
 CREATE DATABASE lineage TOPOLOGY 1 PRIMARIES 2 SECONDARIES;
 
-CREATE INDEX applicationId_hashIn FOR (n:LineageFlowEntity) ON (n.applicationId, n.hashIn);
-CREATE INDEX applicationId_hashOut FOR (n:LineageFlowEntity) ON (n.applicationId, n.hashOut);
+CREATE INDEX applicationId_hashIn FOR (n:LineageFlow) ON (n.applicationId, n.hashIn);
+CREATE INDEX applicationId_hashOut FOR (n:LineageFlow) ON (n.applicationId, n.hashOut);
+CREATE INDEX flow_id FOR (n:LineageFlow) ON (n.flowId);
 
+DROP INDEX applicationId_hashIn;
+DROP INDEX applicationId_hashOut;
+DROP INDEX flow_id;
 
 // Determine read rows of previous partitions
-MATCH (n:LineageFlowEntity)
+MATCH (n:LineageFlow)
 WHERE n.applicationId = 'local-1724487096906' and n.hashIn =~ 'read#0#.*'
 WITH n, toInteger(SPLIT(n.hashIn, '#')[2]) AS numValue
 ORDER BY numValue DESC
@@ -18,13 +22,15 @@ RETURN n, numValue
 LIMIT 1
 
 // Forward tracing for specific row
-MATCH (start:LineageFlowEntity)
-WHERE start.applicationId = 'local-1724487096906' AND start.hashIn = 'read#0#1'
-MATCH path = (start)-[*0..]-(flow)
+MATCH (start:LineageFlow)
+WHERE start.applicationId = 'local-1728591828955' AND start.hashIn = 'read#0#1'
+MATCH path = (start)-[*0..]->(flow)
 RETURN path
+LIMIT 1000
 
 // Backward tracing for a specific row
-MATCH (end:LineageFlowEntity)
-WHERE end.applicationId = 'app-20240825160411-0001' AND end.hashOut = 'write#0#1'
-MATCH path = (end)-[*0..]-(flow)
+MATCH (end:LineageFlow)
+WHERE end.applicationId = 'local-1728630860520' AND end.hashOut = 'write#0#119'
+MATCH path = (end)<-[*0..]-(flow)
 RETURN path
+LIMIT 1000

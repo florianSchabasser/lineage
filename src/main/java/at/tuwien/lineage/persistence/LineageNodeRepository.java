@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LineageNodeRepository extends Neo4jRepository<LineageNodeEntity, String> {
 
-    @Query("MATCH (src:LineageNodeEntity { nodeId: $srcNodeId }) " +
-            "MATCH (dest:LineageNodeEntity { nodeId: $destNodeId }) " +
+    @Query("MATCH (src:LineageNode { nodeId: $srcNodeId }) " +
+            "MATCH (dest:LineageNode { nodeId: $destNodeId }) " +
             "MERGE (src)-[:sendsTo]->(dest)")
     void createRelationship(String srcNodeId, String destNodeId);
 }
