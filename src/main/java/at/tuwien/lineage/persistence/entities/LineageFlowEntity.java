@@ -8,8 +8,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,18 +43,5 @@ public class LineageFlowEntity {
     @Override
     public int hashCode() {
         return Objects.hashCode(flowId);
-    }
-
-    public Map<String, String> getAsMap() {
-        Map<String, String> map =  new HashMap<>();
-        map.put("flowId", flowId);
-        map.put("appId", applicationId);
-        map.put("hashIn", hashIn);
-        map.put("hashOut", hashOut);
-        map.put("name", name);
-        map.put("description", description);
-        map.put("value", value);
-
-        return map;
     }
 }

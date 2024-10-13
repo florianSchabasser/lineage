@@ -14,4 +14,16 @@ public record LineageFlow(String flowId, String appId, String hashIn, String has
         this(flowId, flowId.split("#")[0], hashIn, hashOut, null, null, null);
     }
 
+    public Map<String, String> getAsMap() {
+        Map<String, String> map =  new HashMap<>();
+        map.put("flowId", flowId);
+        map.put("appId", appId);
+        map.put("hashIn", hashIn);
+        map.put("hashOut", hashOut);
+        map.put("name", name);
+        map.put("description", description);
+        map.put("value", value);
+
+        return map;
+    }
 }

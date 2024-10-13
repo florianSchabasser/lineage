@@ -1,13 +1,7 @@
-MATCH (n) DETACH DELETE n
-
-// To achieve high availability, a database should be created with multiple primaries.
-// If high availability is not required, then a database may be created with a single primary for minimum write latency.
-// https://neo4j.com/docs/operations-manual/current/clustering/introduction/
-CREATE DATABASE lineage TOPOLOGY 1 PRIMARIES 2 SECONDARIES;
-
-CREATE INDEX applicationId_hashIn FOR (n:LineageFlow) ON (n.applicationId, n.hashIn);
-CREATE INDEX applicationId_hashOut FOR (n:LineageFlow) ON (n.applicationId, n.hashOut);
-CREATE INDEX flow_id FOR (n:LineageFlow) ON (n.flowId);
+CREATE INDEX applicationId FOR (n:LineageFlow) ON (n.applicationId)
+CREATE INDEX hashOut FOR (n:LineageFlow) ON (n.hashOut)
+CREATE INDEX hashIn FOR (n:LineageFlow) ON (n.hashIn)
+CREATE INDEX flowId FOR (n:LineageFlow) ON (n.flowId);
 
 DROP INDEX applicationId_hashIn;
 DROP INDEX applicationId_hashOut;
@@ -34,3 +28,15 @@ WHERE end.applicationId = 'local-1728630860520' AND end.hashOut = 'write#0#119'
 MATCH path = (end)<-[*0..]-(flow)
 RETURN path
 LIMIT 1000
+
+CALL apoc.periodic.iterate(
+  "MATCH (current {applicationId: $applicationId}) RETURN current",
+  "MATCH (successor {applicationId: $applicationId})
+   WHERE current.hashOut = successor.hashIn
+   MERGE (current)-[:flow]->(successor)
+   WITH current
+   MATCH (predecessor {applicationId: $applicationId})
+   WHERE predecessor.hashOut = current.hashIn
+   MERGE (predecessor)-[:flow]->(current)",
+  {batchSize:10000, parallel:false, params: {applicationId: $applicationId}}
+)
