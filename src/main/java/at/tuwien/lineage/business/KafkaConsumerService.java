@@ -69,8 +69,8 @@ public class KafkaConsumerService {
 
         if (values.length == 3) {
             return new LineageFlow(values[0], values[1], values[2]);
-        } else if (values.length == 6) {
-            return new LineageFlow(values[0], values[1], values[2], values[3], values[4], values[5]);
+        } else if (values.length == 4) {
+            return new LineageFlow(values[0], values[1], values[2], values[3]);
         } else {
             log.error("Unsupported message type {}", record.value());
             return null;

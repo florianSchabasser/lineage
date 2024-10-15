@@ -11,12 +11,11 @@ public interface LineageFlowRepository extends Neo4jRepository<LineageFlowEntity
 
     @Query("UNWIND $serializedEntities AS item " +
             "MERGE (current:LineageFlow { flowId: item.flowId }) " +
-            "SET current.applicationId = item.appId, " +
+            "SET current.applicationId = item.applicationId, " +
+            "    current.nodeId = item.nodeId, " +
             "    current.hashIn = item.hashIn, " +
             "    current.hashOut = item.hashOut, " +
-            "    current.value = item.value, " +
-            "    current.name = item.name, " +
-            "    current.description = item.description ")
+            "    current.value = item.value, ")
     void saveAll(List<Map<String, String>> serializedEntities);
 
 }

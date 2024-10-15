@@ -15,21 +15,15 @@ public class CustomLineageFlowRepositoryImpl implements CustomLineageFlowReposit
     @Override
     public void createFlowRelationships(String applicationId) {
         try (Session session = driver.session()) {
-            session.executeWriteWithoutResult(tx -> {
-                String query =
-                        "CALL apoc.periodic.iterate(" +
-                                "  \"MATCH (current {applicationId: $applicationId}) RETURN current\"," +
-                                "  \"MATCH (successor {applicationId: $applicationId}) " +
-                                "   WHERE current.hashOut = successor.hashIn " +
-                                "   MERGE (current)-[:flow]->(successor) " +
-                                "   WITH current " +
-                                "   MATCH (predecessor {applicationId: $applicationId}) " +
-                                "   WHERE predecessor.hashOut = current.hashIn " +
-                                "   MERGE (predecessor)-[:flow]->(current)\"," +
-                                "  {batchSize:10000, parallel:false, params: {applicationId: $applicationId}}" +
-                                ")";
-                tx.run(query, Values.parameters("applicationId", applicationId));
-            });
+            String query =
+                    "CALL apoc.periodic.iterate(" +
+                            "  \"MATCH (current:LineageFlow {applicationId: $applicationId}) RETURN current\"," +
+                            "  \"MATCH (successor:LineageFlow {applicationId: $applicationId, hashIn: current.hashOut})" +
+                            "   MERGE (current)-[:flow]->(successor)\"," +
+                            "  {batchSize:10000, params: {applicationId: $applicationId}}" +
+                            ")";
+
+            session.run(query, Values.parameters("applicationId", applicationId));
         }
     }
 }

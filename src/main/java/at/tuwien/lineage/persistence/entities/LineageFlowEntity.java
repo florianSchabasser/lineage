@@ -21,6 +21,7 @@ public class LineageFlowEntity {
     // Guaranties fault tolerance - duplicate flows will be overridden
     @Id
     private String flowId; //        = applicationId#rddId#recordId
+    private String nodeId; //        = applicationId#rddId
     private String applicationId; // = applicationId
 
     private String hashIn;

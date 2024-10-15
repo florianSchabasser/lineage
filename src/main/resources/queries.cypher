@@ -1,10 +1,7 @@
-CREATE INDEX applicationId FOR (n:LineageFlow) ON (n.applicationId)
-CREATE INDEX hashOut FOR (n:LineageFlow) ON (n.hashOut)
-CREATE INDEX hashIn FOR (n:LineageFlow) ON (n.hashIn)
-CREATE INDEX flowId FOR (n:LineageFlow) ON (n.flowId);
+CREATE INDEX applicationId_hashIn FOR (n:LineageFlow) ON (n.applicationId, n.hashIn);
+CREATE INDEX flow_id FOR (n:LineageFlow) ON (n.flowId);
 
 DROP INDEX applicationId_hashIn;
-DROP INDEX applicationId_hashOut;
 DROP INDEX flow_id;
 
 // Determine read rows of previous partitions
@@ -30,13 +27,8 @@ RETURN path
 LIMIT 1000
 
 CALL apoc.periodic.iterate(
-  "MATCH (current {applicationId: $applicationId}) RETURN current",
-  "MATCH (successor {applicationId: $applicationId})
-   WHERE current.hashOut = successor.hashIn
-   MERGE (current)-[:flow]->(successor)
-   WITH current
-   MATCH (predecessor {applicationId: $applicationId})
-   WHERE predecessor.hashOut = current.hashIn
-   MERGE (predecessor)-[:flow]->(current)",
-  {batchSize:10000, parallel:false, params: {applicationId: $applicationId}}
+  "MATCH (current:LineageFlow {applicationId: $applicationId}) RETURN current",
+  "MATCH (successor:LineageFlow {applicationId: $applicationId, hashIn: current.hashOut})
+   MERGE (current)-[:flow]->(successor)",
+  {batchSize:10000, params: {applicationId: $applicationId}}
 )
