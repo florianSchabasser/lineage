@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import uuid
+import sys
 
 # Settings
 vocab_size = 8000
@@ -46,4 +47,4 @@ def create_files(mb: int):
 
 
 if __name__ == "__main__":
-    create_files(1000)
+    create_files(int(sys.argv[1]))
