@@ -36,7 +36,7 @@ public class KafkaConfig {
 
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 25000);
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 15000);
 
         config.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, "1048576");
         config.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, "104857600");
