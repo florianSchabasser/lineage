@@ -7,7 +7,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 import java.util.List;
 import java.util.Map;
 
-public interface LineageFlowRepository extends Neo4jRepository<LineageFlowEntity, String>, CustomLineageFlowRepository {
+public interface LineageFlowRepository extends Neo4jRepository<LineageFlowEntity, String> {
 
     @Query("UNWIND $serializedEntities AS item " +
             "MERGE (current:LineageFlow { flowId: item.flowId }) " +
@@ -15,7 +15,7 @@ public interface LineageFlowRepository extends Neo4jRepository<LineageFlowEntity
             "    current.nodeId = item.nodeId, " +
             "    current.hashIn = item.hashIn, " +
             "    current.hashOut = item.hashOut, " +
-            "    current.value = item.value, ")
+            "    current.value = item.value")
     void saveAll(List<Map<String, String>> serializedEntities);
 
 }
