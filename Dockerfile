@@ -2,7 +2,7 @@ FROM openjdk:19-jdk-slim
 WORKDIR /app
 
 ARG APP_NAME=lineage
-ARG VERSION=1.0.9
+ARG VERSION=1.0.10
 
 ARG JAR_FILE=target/${APP_NAME}-${VERSION}.jar
 COPY ${JAR_FILE} app.jar
