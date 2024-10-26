@@ -32,3 +32,10 @@ CALL apoc.periodic.iterate(
    MERGE (current)-[:flow]->(successor)",
   {batchSize:10000, params: {applicationId: $applicationId}}
 )
+
+CALL apoc.periodic.iterate(
+  "MATCH (current:LineageFlow {applicationId: $applicationId}) RETURN current",
+  "MATCH (meta:LineageNode {applicationId: $applicationId, nodeId: current.nodeId})
+   SET current.name = meta.name, current.description = meta.description",
+  {batchSize:10000, parallel: true, params: {applicationId: $applicationId}}
+)
